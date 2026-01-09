@@ -25,6 +25,7 @@
 //!     // Create meter with SQLite storage
 //!     let storage = SqliteBackend::new_in_memory()?;
 //!     let meter = Meter::new(storage);
+//!     meter.initialize().await?;
 //!
 //!     // Record usage events
 //!     let event = Event::builder()
@@ -38,13 +39,13 @@
 //!     meter.record(event).await?;
 //!
 //!     // Query usage
-//!     let usage = meter.query()
+//!     let stats = meter.query()
 //!         .user_id("user-123")
 //!         .start_time(Utc::now() - chrono::Duration::hours(24))
-//!         .execute()
+//!         .execute_stats()
 //!         .await?;
 //!
-//!     println!("Total tokens: {:?}", usage.get_metric_sum("tokens"));
+//!     println!("Total tokens: {:?}", stats.get_metric_sum("tokens"));
 //!     Ok(())
 //! }
 //! ```
@@ -58,24 +59,24 @@ pub mod query;
 pub mod alert;
 
 pub use event::{Event, EventBuilder, MetricValue};
-pub use meter::Meter;
+pub use meter::{Meter, Error};
 pub use storage::{StorageBackend, SqliteBackend, FileBackend};
 pub use aggregation::{Aggregation, TimeWindow, AggregationFn};
 pub use billing::{BillingEngine, PricingRule, CostCalculation, Invoice, Report};
-pub use query::{Query, QueryBuilder, UsageStats};
-pub use alert::{Alert, AlertRule, AlertThreshold};
+pub use query::{QueryBuilder, UsageStats, QueryError};
+pub use alert::{Alert, AlertRule, AlertThreshold, AlertManager};
 
 /// Re-export commonly used types
 pub mod prelude {
-    pub use crate::{Event, EventBuilder, Meter, MetricValue};
+    pub use crate::{Event, EventBuilder, Meter, MetricValue, Error};
     pub use crate::storage::{StorageBackend, SqliteBackend};
     pub use crate::aggregation::{Aggregation, TimeWindow};
     pub use crate::billing::{BillingEngine, PricingRule};
-    pub use crate::query::{Query, QueryBuilder};
+    pub use crate::query::{QueryBuilder, UsageStats};
 }
 
 /// usemeter error types
-pub mod error {
+pub mod errors {
     pub use crate::event::EventError;
     pub use crate::storage::StorageError;
     pub use crate::billing::BillingError;

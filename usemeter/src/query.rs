@@ -21,7 +21,7 @@ pub enum QueryError {
 /// # Example
 ///
 /// ```rust,no_run
-/// use usemeter::{Meter, Query};
+/// use usemeter::{Meter, QueryBuilder};
 /// use chrono::{Utc, Duration};
 ///
 /// # async fn example(meter: Meter) -> Result<(), Box<dyn std::error::Error>> {
@@ -36,12 +36,12 @@ pub enum QueryError {
 /// ```
 #[derive(Debug, Clone, Default)]
 pub struct QueryBuilder {
-    user_id: Option<String>,
-    event_type: Option<String>,
-    resource_id: Option<String>,
-    start_time: Option<DateTime<Utc>>,
-    end_time: Option<DateTime<Utc>>,
-    limit: Option<usize>,
+    pub user_id: Option<String>,
+    pub event_type: Option<String>,
+    pub resource_id: Option<String>,
+    pub start_time: Option<DateTime<Utc>>,
+    pub end_time: Option<DateTime<Utc>>,
+    pub limit: Option<usize>,
 }
 
 impl QueryBuilder {

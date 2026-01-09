@@ -6,7 +6,6 @@ use crate::{
     event::Event,
     query::{QueryBuilder, UsageStats},
     storage::StorageBackend,
-    Error,
 };
 use chrono::{DateTime, Utc};
 use std::sync::Arc;

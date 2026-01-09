@@ -409,7 +409,7 @@ impl Report {
         w.serialize(&[
             self.data.period_start.to_rfc3339(),
             self.data.period_end.to_rfc3339(),
-            self.data.user_id.as_deref().unwrap_or(""),
+            self.data.user_id.as_deref().unwrap_or("").to_string(),
             self.data.total_events.to_string(),
             self.data.total_cost_cents.to_string(),
         ])

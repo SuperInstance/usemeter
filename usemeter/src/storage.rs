@@ -3,6 +3,8 @@
 use crate::event::Event;
 use crate::query::{QueryBuilder, UsageStats};
 use chrono::{DateTime, Utc};
+use std::sync::Arc;
+use std::io::{Write, Seek, BufRead};
 use thiserror::Error;
 
 /// Storage error types
@@ -253,7 +255,7 @@ impl StorageBackend for SqliteBackend {
         ).map_err(|e| StorageError::Database(e.to_string()))?;
 
         tracing::debug!("Deleted {} events before {}", count, timestamp);
-        Ok(count)
+        Ok(count as u64)
     }
 
     async fn count(&self) -> Result<u64> {
@@ -360,7 +362,7 @@ impl FileBackend {
         let reader = std::io::BufReader::new(file);
 
         let mut events = Vec::new();
-        for line in std::io::Lines::new(reader) {
+        for line in reader.lines() {
             let line = line.map_err(|e| StorageError::Io(e))?;
             if line.trim().is_empty() {
                 continue;
@@ -451,6 +453,7 @@ impl StorageBackend for FileBackend {
 
     async fn delete_before(&self, timestamp: DateTime<Utc>) -> Result<u64> {
         let events = self.read_all()?;
+        let original_count = events.len();
         let filtered: Vec<_> = events.into_iter().filter(|e| e.timestamp >= timestamp).collect();
 
         // Rewrite file with filtered events
@@ -465,7 +468,7 @@ impl StorageBackend for FileBackend {
         }
         file.flush().map_err(|e| StorageError::Io(e))?;
 
-        let deleted_count = events.len() - filtered.len();
+        let deleted_count = original_count - filtered.len();
         tracing::debug!("Deleted {} events before {}", deleted_count, timestamp);
         Ok(deleted_count as u64)
     }
