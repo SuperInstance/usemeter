@@ -1,0 +1,85 @@
+[package]
+name = "model-registry"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+# This is a standalone crate
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/SuperInstance/model-registry"
+authors = ["SuperInstance Contributors"]
+description = "Version management and downloading system for ML models"
+keywords = ["ml", "models", "registry", "download", "huggingface"]
+categories = ["development-tools", "database"]
+
+[lib]
+name = "model_registry"
+path = "src/lib.rs"
+
+[[bin]]
+name = "model-registry"
+path = "src/main.rs"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1.35", features = ["full"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# HTTP for downloads
+reqwest = { version = "0.11", features = ["stream", "json"] }
+
+# Crypto for checksums
+sha2 = "0.10"
+hex = "0.4"
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# CLI
+clap = { version = "4.4", features = ["derive"] }
+
+# Progress bars
+indicatif = "0.17"
+
+# Async traits
+async-trait = "0.1"
+
+# Async utilities
+futures-util = "0.3"
+
+# UUID for IDs
+uuid = { version = "1.6", features = ["serde", "v4"] }
+
+# Directory management
+dirs = "5.0"
+
+# S3 storage (optional)
+aws-config = { version = "1.1", optional = true }
+aws-sdk-s3 = { version = "1.14", optional = true }
+
+[dev-dependencies]
+tokio-test = "0.4"
+tempfile = "3.8"
+mockito = "1.2"
+
+[features]
+default = ["local-storage"]
+local-storage = []
+s3-storage = ["aws-config", "aws-sdk-s3"]
+all-storage = ["local-storage", "s3-storage"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

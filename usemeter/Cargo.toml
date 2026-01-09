@@ -1,0 +1,46 @@
+[package]
+name = "usemeter"
+version = "0.1.0"
+description = "Usage tracking, metering, and billing engine for applications"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/SuperInstance/usemeter"
+authors = ["SuperInstance Team"]
+edition = "2021"
+keywords = ["metering", "billing", "usage-tracking", "analytics"]
+categories = ["data-structures", "database"]
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+tracing = "0.1"
+thiserror = "1"
+anyhow = "1"
+async-trait = "0.1"
+
+# SQL backend
+rusqlite = { version = "0.31", features = ["chrono", "serde_json"], optional = true }
+
+# Report generation
+csv = { version = "1", optional = true }
+
+[dev-dependencies]
+tokio-test = "0.4"
+tempfile = "3"
+criterion = "0.5"
+
+[features]
+default = ["sqlite", "csv-reports"]
+sqlite = ["rusqlite"]
+csv-reports = ["csv"]
+all-backends = ["sqlite", "csv-reports"]
+
+[[bench]]
+name = "metering"
+harness = false
+
+[lib]
+name = "usemeter"
+path = "src/lib.rs"

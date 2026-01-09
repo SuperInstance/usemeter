@@ -1,0 +1,94 @@
+[workspace]
+# This crate is not part of the parent workspace
+
+[package]
+name = "token-vault"
+version = "0.1.0"
+edition = "2021"
+authors = ["SuperInstance Contributors"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/SuperInstance/token-vault"
+homepage = "https://github.com/SuperInstance/token-vault"
+documentation = "https://docs.rs/token-vault"
+description = "Secure token storage system with encryption-at-rest for API keys, secrets, and credentials"
+keywords = ["security", "encryption", "vault", "secrets", "credentials"]
+categories = ["cryptography", "authentication"]
+readme = "README.md"
+
+[features]
+default = ["server", "client", "admin"]
+server = ["tokio", "axum", "tower-http"]
+client = ["tokio", "reqwest"]
+admin = ["tokio"]
+# privox = ["dep:privox"]  # TODO: Enable when privox is published to crates.io
+
+[dependencies]
+# Cryptography
+aes-gcm = "0.10"
+argon2 = "0.5"
+blake2 = "0.10"
+rand = "0.8"
+zeroize = "1.7"
+hex = "0.4"
+base64 = "0.21"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Database
+rusqlite = { version = "0.30", features = ["bundled"] }
+
+# Async runtime
+tokio = { version = "1.35", features = ["full"], optional = true }
+
+# HTTP server (for vault server)
+axum = { version = "0.7", optional = true }
+tower-http = { version = "0.5", features = ["cors", "trace"], optional = true }
+
+# HTTP client (for vault client)
+reqwest = { version = "0.11", features = ["json"], optional = true }
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Time handling
+chrono = { version = "0.4", features = ["serde"] }
+
+# CLI
+clap = { version = "4.4", features = ["derive"], optional = true }
+
+# Privox integration (when published to crates.io)
+# privox = { version = "0.1", optional = true }
+
+[dev-dependencies]
+tokio-test = "0.4"
+tempfile = "3.8"
+
+[[bin]]
+name = "token-vault-server"
+path = "src/server.rs"
+required-features = ["server"]
+
+[[bin]]
+name = "token-vault-client"
+path = "src/client.rs"
+required-features = ["client"]
+
+[[bin]]
+name = "token-vault-admin"
+path = "src/admin.rs"
+required-features = ["admin"]
+
+[lib]
+name = "token_vault"
+path = "src/lib.rs"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
