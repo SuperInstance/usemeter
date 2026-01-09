@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["PrivacyError"],"mod":["patterns","redactor","vault"],"struct":["RedactionStats"],"type":["PrivacyResult"]};

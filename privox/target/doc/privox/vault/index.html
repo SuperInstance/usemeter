@@ -1,0 +1,36 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Token Vault"><title>privox::vault - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="privox" data-themes="" data-resource-suffix="" data-rustdoc-version="1.92.0 (ded5c06cf 2025-12-08)" data-channel="1.92.0" data-search-js="search-d69d8955.js" data-stringdex-js="stringdex-c3e638e9.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-ce535bd0.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Module vault</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../privox/index.html">privox</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module vault</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#security-architecture" title="Security Architecture">Security Architecture</a><ul><li><a href="#threat-model" title="Threat Model">Threat Model</a></li><li><a href="#data-protection" title="Data Protection">Data Protection</a></li></ul></li><li><a href="#thread-safety" title="Thread Safety">Thread Safety</a></li><li><a href="#performance" title="Performance">Performance</a></li></ul><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate privox</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">privox</a></div><h1>Module <span>vault</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/privox/vault.rs.html#1-489">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Token Vault</p>
+<p>Secure local storage for original values that have been redacted.
+Maps <code>[EMAIL_0001]</code> back to user@example.com
+Never leaves the local machine - this is the core of privacy protection.</p>
+<h2 id="security-architecture"><a class="doc-anchor" href="#security-architecture">§</a>Security Architecture</h2>
+<p>The vault is the <strong>only place</strong> where sensitive data exists in plaintext.
+All tokens are stored locally in SQLite and never transmitted to the cloud.</p>
+<h3 id="threat-model"><a class="doc-anchor" href="#threat-model">§</a>Threat Model</h3>
+<ul>
+<li><strong>Cloud provider</strong>: Cannot access original values (only tokens)</li>
+<li><strong>Network attacker</strong>: Intercepted tokens are useless without vault</li>
+<li><strong>Local attacker</strong>: Requires filesystem access to SQLite database</li>
+<li><strong>Memory dump</strong>: Vault lives in memory while app runs (encrypted swap recommended)</li>
+</ul>
+<h3 id="data-protection"><a class="doc-anchor" href="#data-protection">§</a>Data Protection</h3>
+<ul>
+<li>Tokens use UUID-style format: <code>[CATEGORY_NNNN]</code></li>
+<li>Counter is global (not per-session) for uniqueness</li>
+<li>Session IDs enable token isolation and cleanup</li>
+<li>SQLite database provides ACID guarantees</li>
+</ul>
+<h2 id="thread-safety"><a class="doc-anchor" href="#thread-safety">§</a>Thread Safety</h2>
+<p>The vault uses <code>Arc&lt;Mutex&lt;T&gt;&gt;</code> for thread-safe access:</p>
+<ul>
+<li>Multiple threads can read/write concurrently</li>
+<li>SQLite connection is protected by mutex</li>
+<li>Counters are protected by separate mutex</li>
+</ul>
+<h2 id="performance"><a class="doc-anchor" href="#performance">§</a>Performance</h2>
+<ul>
+<li>Store: O(1) - Single database INSERT</li>
+<li>Retrieve: O(1) - Single database SELECT with index</li>
+<li>Clear session: O(n) - DELETE WHERE session_id = ?</li>
+<li>Stats: O(n) - GROUP BY query over session</li>
+</ul>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.SessionStats.html" title="struct privox::vault::SessionStats">Session<wbr>Stats</a></dt><dd>Statistics about tokens in a session</dd><dt><a class="struct" href="struct.TokenVault.html" title="struct privox::vault::TokenVault">Token<wbr>Vault</a></dt><dd>The token vault for session-based token storage</dd></dl></section></div></main></body></html>

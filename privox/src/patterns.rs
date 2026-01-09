@@ -23,7 +23,7 @@
 //! Patterns are compiled once at startup using `once_cell::sync::Lazy` and cached globally.
 //! This provides:
 //! - Zero compilation cost after first use
-//! - Memory-efficient sharing (Arc<Regex> for all Pattern instances)
+//! - Memory-efficient sharing (Arc\<Regex\> for all Pattern instances)
 //! - Thread-safe access without locking
 //!
 //! # Pattern Matching Algorithm

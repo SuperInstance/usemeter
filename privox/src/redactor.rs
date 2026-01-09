@@ -6,7 +6,7 @@
 //! # Redaction Flow
 //!
 //! 1. **Detection**: Scan text for all pattern matches (ordered by priority)
-//! 2. **Tokenization**: Replace each match with `[CATEGORY_NNNN]` token
+//! 2. **Tokenization**: Replace each match with `[CATEGORY_NNNN]` token where NNNN is a counter
 //! 3. **Storage**: Store original value in TokenVault (local only)
 //! 4. **Transmission**: Send redacted text to cloud (no sensitive data)
 //!
@@ -188,7 +188,7 @@ impl Redactor {
     /// 1. Find all pattern matches (already sorted and deduplicated by PatternSet)
     /// 2. For each match in position order:
     ///    a. Store original value in vault
-    ///    b. Get token [CATEGORY_NNNN]
+    ///    b. Get token (format: `[CATEGORY_0001]`)
     ///    c. Replace match with token in output
     /// 3. Track statistics for redacted items
     ///
