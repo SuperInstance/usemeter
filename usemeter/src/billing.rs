@@ -181,14 +181,11 @@ impl BillingEngine {
         let mut breakdown = HashMap::new();
 
         for rule_name in rule_names {
-            let rule = self
-                .rules
-                .get(rule_name)
-                .ok_or_else(|| BillingError::InvalidRule(format!("Rule '{}' not found", rule_name)))?;
+            let rule = self.rules.get(rule_name).ok_or_else(|| {
+                BillingError::InvalidRule(format!("Rule '{}' not found", rule_name))
+            })?;
 
-            let value = stats
-                .get_metric_sum(&rule.metric)
-                .unwrap_or(0.0);
+            let value = stats.get_metric_sum(&rule.metric).unwrap_or(0.0);
 
             let cost = rule.calculate_cost(value);
             total_cents += cost;
@@ -221,10 +218,9 @@ impl BillingEngine {
         let mut breakdown = HashMap::new();
 
         for rule_name in rule_names {
-            let rule = self
-                .rules
-                .get(rule_name)
-                .ok_or_else(|| BillingError::InvalidRule(format!("Rule '{}' not found", rule_name)))?;
+            let rule = self.rules.get(rule_name).ok_or_else(|| {
+                BillingError::InvalidRule(format!("Rule '{}' not found", rule_name))
+            })?;
 
             let value = event
                 .get_metric(&rule.metric)
@@ -384,10 +380,7 @@ pub struct ReportData {
 
 impl Report {
     /// Create a new report
-    pub fn new(
-        report_type: ReportType,
-        data: ReportData,
-    ) -> Self {
+    pub fn new(report_type: ReportType, data: ReportData) -> Self {
         Self {
             id: uuid::Uuid::new_v4().to_string(),
             report_type,
@@ -402,8 +395,14 @@ impl Report {
         let mut w = csv::Writer::from_writer(vec![]);
 
         // Write header
-        w.serialize(&["Period Start", "Period End", "User ID", "Total Events", "Total Cost (Cents)"])
-            .map_err(|e| BillingError::ReportFailed(e.to_string()))?;
+        w.serialize(&[
+            "Period Start",
+            "Period End",
+            "User ID",
+            "Total Events",
+            "Total Cost (Cents)",
+        ])
+        .map_err(|e| BillingError::ReportFailed(e.to_string()))?;
 
         // Write data
         w.serialize(&[
@@ -413,19 +412,18 @@ impl Report {
             self.data.total_events.to_string(),
             self.data.total_cost_cents.to_string(),
         ])
+        .map_err(|e| BillingError::ReportFailed(e.to_string()))?;
+
+        let csv_bytes = w
+            .into_inner()
             .map_err(|e| BillingError::ReportFailed(e.to_string()))?;
 
-        let csv_bytes = w.into_inner()
-            .map_err(|e| BillingError::ReportFailed(e.to_string()))?;
-
-        String::from_utf8(csv_bytes)
-            .map_err(|e| BillingError::ReportFailed(e.to_string()))
+        String::from_utf8(csv_bytes).map_err(|e| BillingError::ReportFailed(e.to_string()))
     }
 
     /// Export to JSON
     pub fn to_json(&self) -> Result<String, BillingError> {
-        serde_json::to_string_pretty(self)
-            .map_err(|e| BillingError::ReportFailed(e.to_string()))
+        serde_json::to_string_pretty(self).map_err(|e| BillingError::ReportFailed(e.to_string()))
     }
 }
 

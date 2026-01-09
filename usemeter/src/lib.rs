@@ -50,36 +50,36 @@
 //! }
 //! ```
 
+pub mod aggregation;
+pub mod alert;
+pub mod billing;
 pub mod event;
 pub mod meter;
-pub mod storage;
-pub mod aggregation;
-pub mod billing;
 pub mod query;
-pub mod alert;
+pub mod storage;
 
+pub use aggregation::{Aggregation, AggregationFn, TimeWindow};
+pub use alert::{Alert, AlertManager, AlertRule, AlertThreshold};
+pub use billing::{BillingEngine, CostCalculation, Invoice, PricingRule, Report};
 pub use event::{Event, EventBuilder, MetricValue};
-pub use meter::{Meter, Error};
-pub use storage::{StorageBackend, SqliteBackend, FileBackend};
-pub use aggregation::{Aggregation, TimeWindow, AggregationFn};
-pub use billing::{BillingEngine, PricingRule, CostCalculation, Invoice, Report};
-pub use query::{QueryBuilder, UsageStats, QueryError};
-pub use alert::{Alert, AlertRule, AlertThreshold, AlertManager};
+pub use meter::{Error, Meter};
+pub use query::{QueryBuilder, QueryError, UsageStats};
+pub use storage::{FileBackend, SqliteBackend, StorageBackend};
 
 /// Re-export commonly used types
 pub mod prelude {
-    pub use crate::{Event, EventBuilder, Meter, MetricValue, Error};
-    pub use crate::storage::{StorageBackend, SqliteBackend};
     pub use crate::aggregation::{Aggregation, TimeWindow};
     pub use crate::billing::{BillingEngine, PricingRule};
     pub use crate::query::{QueryBuilder, UsageStats};
+    pub use crate::storage::{SqliteBackend, StorageBackend};
+    pub use crate::{Error, Event, EventBuilder, Meter, MetricValue};
 }
 
 /// usemeter error types
 pub mod errors {
-    pub use crate::event::EventError;
-    pub use crate::storage::StorageError;
-    pub use crate::billing::BillingError;
-    pub use crate::query::QueryError;
     pub use crate::alert::AlertError;
+    pub use crate::billing::BillingError;
+    pub use crate::event::EventError;
+    pub use crate::query::QueryError;
+    pub use crate::storage::StorageError;
 }

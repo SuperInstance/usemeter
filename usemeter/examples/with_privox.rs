@@ -2,9 +2,9 @@
 //!
 //! Demonstrates metering privox redaction operations.
 
-use usemeter::{Event, Meter, StorageBackend};
-use usemeter::storage::SqliteBackend;
 use chrono::Utc;
+use usemeter::storage::SqliteBackend;
+use usemeter::{Event, Meter, StorageBackend};
 
 // This example shows how to integrate usemeter with privox
 // In a real application, you would use: use privox::{Redactor, Pattern};
@@ -47,7 +47,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         meter.record(event).await?;
 
-        println!("✓ Redacted {} ({} chars) - pattern: {}",
+        println!(
+            "✓ Redacted {} ({} chars) - pattern: {}",
             text.chars().take(20).collect::<String>(),
             tokens,
             pattern
@@ -56,14 +57,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("\n📊 Privox Usage Statistics:");
 
-    let stats = meter.query()
+    let stats = meter
+        .query()
         .event_type("privox_redaction")
         .execute_stats()
         .await?;
 
     println!("  Total redactions: {}", stats.total_events);
-    println!("  Total characters: {:.0}", stats.get_metric_sum("characters_processed").unwrap_or(0.0));
-    println!("  Total patterns matched: {:.0}", stats.get_metric_sum("patterns_matched").unwrap_or(0.0));
+    println!(
+        "  Total characters: {:.0}",
+        stats.get_metric_sum("characters_processed").unwrap_or(0.0)
+    );
+    println!(
+        "  Total patterns matched: {:.0}",
+        stats.get_metric_sum("patterns_matched").unwrap_or(0.0)
+    );
 
     println!("\n💡 Integration Benefits:");
     println!("  • Track redaction volume by user");

@@ -2,9 +2,9 @@
 //!
 //! Demonstrates basic usage tracking with usemeter.
 
-use usemeter::{Event, Meter, StorageBackend};
-use usemeter::storage::SqliteBackend;
 use chrono::Utc;
+use usemeter::storage::SqliteBackend;
+use usemeter::{Event, Meter, StorageBackend};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -34,14 +34,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n📊 Usage Statistics:");
 
     // Query usage
-    let stats = meter.query()
-        .user_id("user-123")
-        .execute_stats()
-        .await?;
+    let stats = meter.query().user_id("user-123").execute_stats().await?;
 
     println!("  Total events: {}", stats.total_events);
-    println!("  Total tokens: {:.0}", stats.get_metric_sum("tokens").unwrap_or(0.0));
-    println!("  Avg duration: {:.0}ms", stats.get_metric_average("duration_ms").unwrap_or(0.0));
+    println!(
+        "  Total tokens: {:.0}",
+        stats.get_metric_sum("tokens").unwrap_or(0.0)
+    );
+    println!(
+        "  Avg duration: {:.0}ms",
+        stats.get_metric_average("duration_ms").unwrap_or(0.0)
+    );
 
     Ok(())
 }

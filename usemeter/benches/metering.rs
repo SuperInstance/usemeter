@@ -1,9 +1,9 @@
 //! Benchmark for usemeter operations
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
-use usemeter::{Event, Meter, StorageBackend};
-use usemeter::storage::SqliteBackend;
 use chrono::Utc;
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use usemeter::storage::SqliteBackend;
+use usemeter::{Event, Meter, StorageBackend};
 
 fn bench_record_event(c: &mut Criterion) {
     let rt = tokio::runtime::Runtime::new().unwrap();

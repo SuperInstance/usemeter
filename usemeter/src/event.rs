@@ -334,7 +334,10 @@ mod tests {
 
         assert_eq!(event.event_type, "api_call");
         assert_eq!(event.user_id, "user-123");
-        assert_eq!(event.get_metric("tokens"), Some(&MetricValue::Integer(1000)));
+        assert_eq!(
+            event.get_metric("tokens"),
+            Some(&MetricValue::Integer(1000))
+        );
         assert_eq!(event.get_tag("model"), Some(&"claude-sonnet".to_string()));
     }
 
@@ -374,8 +377,14 @@ mod tests {
             .unwrap();
 
         let total = event.derive_metric("total_tokens", |metrics| {
-            let input = metrics.get("input_tokens").and_then(|v| v.as_i64()).unwrap_or(0);
-            let output = metrics.get("output_tokens").and_then(|v| v.as_i64()).unwrap_or(0);
+            let input = metrics
+                .get("input_tokens")
+                .and_then(|v| v.as_i64())
+                .unwrap_or(0);
+            let output = metrics
+                .get("output_tokens")
+                .and_then(|v| v.as_i64())
+                .unwrap_or(0);
             MetricValue::Integer(input + output)
         });
 

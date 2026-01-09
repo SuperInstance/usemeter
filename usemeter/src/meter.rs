@@ -2,7 +2,9 @@
 
 use crate::{
     alert::AlertManager,
-    billing::{BillingEngine, CostCalculation, Invoice, PricingRule, Report, ReportData, ReportType},
+    billing::{
+        BillingEngine, CostCalculation, Invoice, PricingRule, Report, ReportData, ReportType,
+    },
     event::Event,
     query::{QueryBuilder, UsageStats},
     storage::StorageBackend,
@@ -154,9 +156,7 @@ impl<S: StorageBackend> Meter<S> {
         end: DateTime<Utc>,
         rule_names: &[String],
     ) -> Result<Invoice, Error> {
-        let cost = self
-            .calculate_cost(user_id, start, end, rule_names)
-            .await?;
+        let cost = self.calculate_cost(user_id, start, end, rule_names).await?;
 
         Ok(Invoice::new(user_id, start, end, cost))
     }
@@ -170,7 +170,10 @@ impl<S: StorageBackend> Meter<S> {
         rule_names: &[String],
     ) -> Result<Report, Error> {
         let query = if let Some(uid) = user_id {
-            QueryBuilder::default().user_id(uid).start_time(start).end_time(end)
+            QueryBuilder::default()
+                .user_id(uid)
+                .start_time(start)
+                .end_time(end)
         } else {
             QueryBuilder::default().start_time(start).end_time(end)
         };

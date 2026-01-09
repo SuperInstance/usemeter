@@ -1,6 +1,6 @@
 //! Aggregation functions and time windows
 
-use chrono::{DateTime, Utc, Timelike, Datelike, TimeZone};
+use chrono::{DateTime, Datelike, TimeZone, Timelike, Utc};
 use serde::{Deserialize, Serialize};
 
 /// Time window for aggregations
@@ -32,38 +32,35 @@ impl TimeWindow {
     pub fn truncate(&self, dt: DateTime<Utc>) -> DateTime<Utc> {
         match self {
             TimeWindow::All => dt.with_nanosecond(0).unwrap(),
-            TimeWindow::Hour => {
-                dt.with_minute(0)
-                    .and_then(|d| d.with_second(0))
-                    .and_then(|d| d.with_nanosecond(0))
-                    .unwrap()
-            }
-            TimeWindow::Day => {
-                dt.with_hour(0)
-                    .and_then(|d| d.with_minute(0))
-                    .and_then(|d| d.with_second(0))
-                    .and_then(|d| d.with_nanosecond(0))
-                    .unwrap()
-            }
+            TimeWindow::Hour => dt
+                .with_minute(0)
+                .and_then(|d| d.with_second(0))
+                .and_then(|d| d.with_nanosecond(0))
+                .unwrap(),
+            TimeWindow::Day => dt
+                .with_hour(0)
+                .and_then(|d| d.with_minute(0))
+                .and_then(|d| d.with_second(0))
+                .and_then(|d| d.with_nanosecond(0))
+                .unwrap(),
             TimeWindow::Week => {
                 // Get Monday of this week
                 let weekday = dt.weekday().num_days_from_monday();
                 let date = (dt - chrono::Duration::days(weekday as i64)).date_naive();
                 DateTime::from_naive_utc_and_offset(date.and_hms_opt(0, 0, 0).unwrap(), Utc)
-            }
-            TimeWindow::Month => {
-                dt.with_day(1)
-                    .and_then(|d| d.with_hour(0))
-                    .and_then(|d| d.with_minute(0))
-                    .and_then(|d| d.with_second(0))
-                    .and_then(|d| d.with_nanosecond(0))
-                    .unwrap()
-            }
+            },
+            TimeWindow::Month => dt
+                .with_day(1)
+                .and_then(|d| d.with_hour(0))
+                .and_then(|d| d.with_minute(0))
+                .and_then(|d| d.with_second(0))
+                .and_then(|d| d.with_nanosecond(0))
+                .unwrap(),
             TimeWindow::CustomSeconds(seconds) => {
                 let ts = dt.timestamp();
                 let window_start = (ts / (*seconds as i64)) * (*seconds as i64);
                 DateTime::from_timestamp(window_start, 0).unwrap()
-            }
+            },
         }
     }
 
@@ -79,11 +76,11 @@ impl TimeWindow {
                 let month = dt.month() as u32 + 1;
                 let year = dt.year() + if month > 12 { 1 } else { 0 };
                 let month = if month > 12 { 1 } else { month };
-                Utc.with_ymd_and_hms(year, month, 1, 0, 0, 0).single().unwrap()
-            }
-            TimeWindow::CustomSeconds(seconds) => {
-                dt + chrono::Duration::seconds(*seconds as i64)
-            }
+                Utc.with_ymd_and_hms(year, month, 1, 0, 0, 0)
+                    .single()
+                    .unwrap()
+            },
+            TimeWindow::CustomSeconds(seconds) => dt + chrono::Duration::seconds(*seconds as i64),
         }
     }
 }
@@ -196,14 +193,20 @@ mod tests {
     fn test_time_window_truncate_hour() {
         let dt = Utc.with_ymd_and_hms(2025, 1, 8, 14, 30, 45).unwrap();
         let truncated = TimeWindow::Hour.truncate(dt);
-        assert_eq!(truncated, Utc.with_ymd_and_hms(2025, 1, 8, 14, 0, 0).unwrap());
+        assert_eq!(
+            truncated,
+            Utc.with_ymd_and_hms(2025, 1, 8, 14, 0, 0).unwrap()
+        );
     }
 
     #[test]
     fn test_time_window_truncate_day() {
         let dt = Utc.with_ymd_and_hms(2025, 1, 8, 14, 30, 45).unwrap();
         let truncated = TimeWindow::Day.truncate(dt);
-        assert_eq!(truncated, Utc.with_ymd_and_hms(2025, 1, 8, 0, 0, 0).unwrap());
+        assert_eq!(
+            truncated,
+            Utc.with_ymd_and_hms(2025, 1, 8, 0, 0, 0).unwrap()
+        );
     }
 
     #[test]

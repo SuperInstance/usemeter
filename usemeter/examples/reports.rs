@@ -2,9 +2,9 @@
 //!
 //! Demonstrates creating and exporting usage reports.
 
-use usemeter::{Event, Meter, StorageBackend, Report};
+use chrono::{Duration, Utc};
 use usemeter::storage::SqliteBackend;
-use chrono::{Utc, Duration};
+use usemeter::{Event, Meter, Report, StorageBackend};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -24,7 +24,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .timestamp(now - Duration::hours(24 * 7))
                 .metric("tokens", 1000 + i * 100)
                 .metric("duration_ms", 200 + i * 10)
-                .tag("model", if user % 2 == 0 { "claude-sonnet" } else { "claude-opus" })
+                .tag(
+                    "model",
+                    if user % 2 == 0 {
+                        "claude-sonnet"
+                    } else {
+                        "claude-opus"
+                    },
+                )
                 .build()?;
 
             meter.record(event).await?;
@@ -34,16 +41,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("✓ Generated sample data for 5 users over 7 days\n");
 
     // Generate usage report
-    let report = meter.generate_report(
-        None,  // All users
-        now - Duration::days(7),
-        now,
-        &[],   // No pricing rules for this example
-    ).await?;
+    let report = meter
+        .generate_report(
+            None, // All users
+            now - Duration::days(7),
+            now,
+            &[], // No pricing rules for this example
+        )
+        .await?;
 
     println!("📈 Usage Report:");
     println!("  Report ID: {}", report.id);
-    println!("  Period: {} to {}",
+    println!(
+        "  Period: {} to {}",
         report.data.period_start.format("%Y-%m-%d"),
         report.data.period_end.format("%Y-%m-%d")
     );
@@ -54,7 +64,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n👥 Per-User Breakdown:");
     for user in 1..=5 {
         let user_id = format!("user-{}", user);
-        let stats = meter.query()
+        let stats = meter
+            .query()
             .user_id(&user_id)
             .start_time(now - Duration::days(7))
             .execute_stats()
@@ -63,10 +74,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let tokens = stats.get_metric_sum("tokens").unwrap_or(0.0);
         let avg_duration = stats.get_metric_average("duration_ms").unwrap_or(0.0);
 
-        println!("  {}: {:.0} tokens, {:.0}ms avg duration",
-            user_id,
-            tokens,
-            avg_duration
+        println!(
+            "  {}: {:.0} tokens, {:.0}ms avg duration",
+            user_id, tokens, avg_duration
         );
     }
 

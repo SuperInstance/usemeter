@@ -3,8 +3,8 @@
 use crate::event::Event;
 use crate::query::{QueryBuilder, UsageStats};
 use chrono::{DateTime, Utc};
+use std::io::{BufRead, Seek, Write};
 use std::sync::Arc;
-use std::io::{Write, Seek, BufRead};
 use thiserror::Error;
 
 /// Storage error types
@@ -94,8 +94,8 @@ impl SqliteBackend {
     /// Create a new SQLite backend with a file database
     pub fn new(path: impl AsRef<std::path::Path>) -> Result<Self> {
         let path_str = path.as_ref().to_string_lossy().to_string();
-        let conn = rusqlite::Connection::open(&path)
-            .map_err(|e| StorageError::Database(e.to_string()))?;
+        let conn =
+            rusqlite::Connection::open(&path).map_err(|e| StorageError::Database(e.to_string()))?;
         Ok(Self {
             conn: Arc::new(tokio::sync::Mutex::new(conn)),
             path: Some(path_str),
@@ -121,8 +121,8 @@ impl StorageBackend for SqliteBackend {
     async fn store(&self, event: &Event) -> Result<()> {
         let mut conn = self.conn.lock().await;
 
-        let event_json = serde_json::to_string(event)
-            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let event_json =
+            serde_json::to_string(event).map_err(|e| StorageError::Serialization(e.to_string()))?;
 
         conn.execute(
             "INSERT INTO events (id, event_type, user_id, resource_id, timestamp, event_data)
@@ -145,7 +145,9 @@ impl StorageBackend for SqliteBackend {
     async fn store_batch(&self, events: &[Event]) -> Result<()> {
         let mut conn = self.conn.lock().await;
 
-        let tx = conn.unchecked_transaction().map_err(|e| StorageError::Database(e.to_string()))?;
+        let tx = conn
+            .unchecked_transaction()
+            .map_err(|e| StorageError::Database(e.to_string()))?;
 
         for event in events {
             let event_json = serde_json::to_string(event)
@@ -166,7 +168,8 @@ impl StorageBackend for SqliteBackend {
             .map_err(|e| StorageError::Database(e.to_string()))?;
         }
 
-        tx.commit().map_err(|e| StorageError::Database(e.to_string()))?;
+        tx.commit()
+            .map_err(|e| StorageError::Database(e.to_string()))?;
         tracing::trace!("Stored batch of {} events", events.len());
         Ok(())
     }
@@ -203,14 +206,17 @@ impl StorageBackend for SqliteBackend {
             query.push_str(&format!(" LIMIT {}", limit));
         }
 
-        let mut stmt = conn.prepare(&query).map_err(|e| StorageError::Database(e.to_string()))?;
+        let mut stmt = conn
+            .prepare(&query)
+            .map_err(|e| StorageError::Database(e.to_string()))?;
 
         let param_refs: Vec<&dyn rusqlite::ToSql> = params.iter().map(|p| p.as_ref()).collect();
 
         let events = stmt
             .query_map(param_refs.as_slice(), |row| {
                 let json: String = row.get(0)?;
-                serde_json::from_str(&json).map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))
+                serde_json::from_str(&json)
+                    .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))
             })
             .map_err(|e| StorageError::Database(e.to_string()))?
             .collect::<std::result::Result<Vec<_>, _>>()
@@ -225,8 +231,10 @@ impl StorageBackend for SqliteBackend {
         let events = self.query(builder).await?;
 
         let total_events = events.len() as u64;
-        let mut metric_sums: std::collections::HashMap<String, f64> = std::collections::HashMap::new();
-        let mut metric_counts: std::collections::HashMap<String, u64> = std::collections::HashMap::new();
+        let mut metric_sums: std::collections::HashMap<String, f64> =
+            std::collections::HashMap::new();
+        let mut metric_counts: std::collections::HashMap<String, u64> =
+            std::collections::HashMap::new();
 
         for event in events {
             for (name, value) in &event.metrics {
@@ -249,10 +257,12 @@ impl StorageBackend for SqliteBackend {
     async fn delete_before(&self, timestamp: DateTime<Utc>) -> Result<u64> {
         let mut conn = self.conn.lock().await;
 
-        let count = conn.execute(
-            "DELETE FROM events WHERE timestamp < ?",
-            [&timestamp.to_rfc3339()],
-        ).map_err(|e| StorageError::Database(e.to_string()))?;
+        let count = conn
+            .execute(
+                "DELETE FROM events WHERE timestamp < ?",
+                [&timestamp.to_rfc3339()],
+            )
+            .map_err(|e| StorageError::Database(e.to_string()))?;
 
         tracing::debug!("Deleted {} events before {}", count, timestamp);
         Ok(count as u64)
@@ -380,8 +390,8 @@ impl FileBackend {
 impl StorageBackend for FileBackend {
     async fn store(&self, event: &Event) -> Result<()> {
         let mut file = self.lock.lock().await;
-        let json = serde_json::to_string(event)
-            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let json =
+            serde_json::to_string(event).map_err(|e| StorageError::Serialization(e.to_string()))?;
         writeln!(file, "{}", json).map_err(|e| StorageError::Io(e))?;
         file.flush().map_err(|e| StorageError::Io(e))?;
         tracing::trace!("Stored event: {}", event.id);
@@ -430,8 +440,10 @@ impl StorageBackend for FileBackend {
         let events = self.query(builder).await?;
 
         let total_events = events.len() as u64;
-        let mut metric_sums: std::collections::HashMap<String, f64> = std::collections::HashMap::new();
-        let mut metric_counts: std::collections::HashMap<String, u64> = std::collections::HashMap::new();
+        let mut metric_sums: std::collections::HashMap<String, f64> =
+            std::collections::HashMap::new();
+        let mut metric_counts: std::collections::HashMap<String, u64> =
+            std::collections::HashMap::new();
 
         for event in events {
             for (name, value) in &event.metrics {
@@ -454,7 +466,10 @@ impl StorageBackend for FileBackend {
     async fn delete_before(&self, timestamp: DateTime<Utc>) -> Result<u64> {
         let events = self.read_all()?;
         let original_count = events.len();
-        let filtered: Vec<_> = events.into_iter().filter(|e| e.timestamp >= timestamp).collect();
+        let filtered: Vec<_> = events
+            .into_iter()
+            .filter(|e| e.timestamp >= timestamp)
+            .collect();
 
         // Rewrite file with filtered events
         let mut file = self.lock.lock().await;

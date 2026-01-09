@@ -84,19 +84,25 @@ impl QueryBuilder {
     /// Execute query and return events
     pub async fn execute(&self) -> Result<Vec<crate::event::Event>, QueryError> {
         // This is a placeholder - the actual execution happens in the storage backend
-        Err(QueryError::ExecutionFailed("Use Meter::query_events instead".to_string()))
+        Err(QueryError::ExecutionFailed(
+            "Use Meter::query_events instead".to_string(),
+        ))
     }
 
     /// Execute query and return events
     pub async fn execute_events(&self) -> Result<Vec<crate::event::Event>, QueryError> {
         // This is a placeholder - the actual execution happens in the storage backend
-        Err(QueryError::ExecutionFailed("Use Meter::query_events instead".to_string()))
+        Err(QueryError::ExecutionFailed(
+            "Use Meter::query_events instead".to_string(),
+        ))
     }
 
     /// Execute query and return statistics
     pub async fn execute_stats(&self) -> Result<UsageStats, QueryError> {
         // This is a placeholder - the actual execution happens in the storage backend
-        Err(QueryError::ExecutionFailed("Use Meter::query_stats instead".to_string()))
+        Err(QueryError::ExecutionFailed(
+            "Use Meter::query_stats instead".to_string(),
+        ))
     }
 }
 

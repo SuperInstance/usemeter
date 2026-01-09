@@ -79,24 +79,20 @@ impl AlertRule {
             threshold: AlertThreshold::Absolute(threshold_cents),
             rule_type: AlertRuleType::AboveThreshold,
             time_window_seconds: 30 * 24 * 60 * 60, // 30 days
-            check_interval_seconds: 24 * 60 * 60,    // 1 day
+            check_interval_seconds: 24 * 60 * 60,   // 1 day
             enabled: true,
         }
     }
 
     /// Create a quota alert (usage exceeds threshold)
-    pub fn quota_alert(
-        name: impl Into<String>,
-        metric: impl Into<String>,
-        threshold: f64,
-    ) -> Self {
+    pub fn quota_alert(name: impl Into<String>, metric: impl Into<String>, threshold: f64) -> Self {
         Self {
             name: name.into(),
             metric: metric.into(),
             threshold: AlertThreshold::Absolute(threshold),
             rule_type: AlertRuleType::AboveThreshold,
             time_window_seconds: 24 * 60 * 60, // 1 day
-            check_interval_seconds: 60 * 60,    // 1 hour
+            check_interval_seconds: 60 * 60,   // 1 hour
             enabled: true,
         }
     }
@@ -113,7 +109,7 @@ impl AlertRule {
             threshold: AlertThreshold::StandardDeviations(threshold_std_devs),
             rule_type: AlertRuleType::Anomaly,
             time_window_seconds: 7 * 24 * 60 * 60, // 7 days
-            check_interval_seconds: 60 * 60,        // 1 hour
+            check_interval_seconds: 60 * 60,       // 1 hour
             enabled: true,
         }
     }
@@ -249,7 +245,9 @@ impl AlertManager {
         let mut alerts = Vec::new();
 
         // Collect enabled rules first to avoid borrow issues
-        let enabled_rules: Vec<_> = self.rules.iter()
+        let enabled_rules: Vec<_> = self
+            .rules
+            .iter()
             .filter(|r| r.enabled)
             .map(|r| (r.metric.clone(), r.clone()))
             .collect();
@@ -279,13 +277,13 @@ impl AlertManager {
                     AlertThreshold::Percentage(_p) => {
                         // For percentage, need baseline - skip for now
                         return None;
-                    }
+                    },
                     AlertThreshold::StandardDeviations(std_dev) => {
                         // Calculate baseline from history
                         let baseline = self.calculate_baseline(&rule.metric);
                         let std_dev_val = self.calculate_std_dev(&rule.metric);
                         baseline + (std_dev_val * std_dev)
-                    }
+                    },
                 };
 
                 if value > threshold {
@@ -303,7 +301,7 @@ impl AlertManager {
                 } else {
                     None
                 }
-            }
+            },
 
             AlertRuleType::BelowThreshold => {
                 let threshold = match &rule.threshold {
@@ -326,7 +324,7 @@ impl AlertManager {
                 } else {
                     None
                 }
-            }
+            },
 
             AlertRuleType::Anomaly => {
                 // Update history
@@ -363,7 +361,7 @@ impl AlertManager {
                 } else {
                     None
                 }
-            }
+            },
         }
     }
 
@@ -388,7 +386,8 @@ impl AlertManager {
             }
 
             let mean = self.calculate_baseline(metric);
-            let variance: f64 = values.iter().map(|v| (v - mean).powi(2)).sum::<f64>() / (values.len() - 1) as f64;
+            let variance: f64 =
+                values.iter().map(|v| (v - mean).powi(2)).sum::<f64>() / (values.len() - 1) as f64;
             variance.sqrt()
         } else {
             0.0

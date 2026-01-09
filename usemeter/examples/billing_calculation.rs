@@ -2,9 +2,9 @@
 //!
 //! Demonstrates cost calculation and invoicing.
 
-use usemeter::{Event, Meter, StorageBackend, PricingRule, BillingEngine};
+use chrono::{Duration, Utc};
 use usemeter::storage::SqliteBackend;
-use chrono::{Utc, Duration};
+use usemeter::{BillingEngine, Event, Meter, PricingRule, StorageBackend};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -19,13 +19,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     billing.add_rule(PricingRule::new(
         "tokens_pricing",
         "tokens",
-        0.002,  // $0.00002 per token (2 cents per 1000 tokens)
+        0.002, // $0.00002 per token (2 cents per 1000 tokens)
         1.0,
     ));
     billing.add_rule(PricingRule::new(
         "api_calls",
         "api_calls",
-        0.1,   // 0.1 cents per API call
+        0.1, // 0.1 cents per API call
         1.0,
     ));
 
@@ -52,7 +52,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let end = now;
 
     let cost = meter.billing().calculate_cost(
-        &meter.query()
+        &meter
+            .query()
             .user_id("user-123")
             .start_time(start)
             .end_time(end)
@@ -64,7 +65,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("📊 Cost Breakdown:");
     println!("  Total Cost: ${:.2}", cost.total_cents / 100.0);
     for (metric, metric_cost) in &cost.breakdown {
-        println!("    - {}: {:.0} units × ${:.4}/unit = ${:.2}",
+        println!(
+            "    - {}: {:.0} units × ${:.4}/unit = ${:.2}",
             metric,
             metric_cost.value,
             metric_cost.cost_cents / metric_cost.value / 100.0,
@@ -73,16 +75,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Generate invoice
-    let invoice = meter.generate_invoice(
-        "user-123",
-        start,
-        end,
-        &["tokens_pricing".to_string(), "api_calls".to_string()],
-    ).await?;
+    let invoice = meter
+        .generate_invoice(
+            "user-123",
+            start,
+            end,
+            &["tokens_pricing".to_string(), "api_calls".to_string()],
+        )
+        .await?;
 
     println!("\n📄 Invoice Generated:");
     println!("  Invoice ID: {}", invoice.id);
-    println!("  Period: {} to {}",
+    println!(
+        "  Period: {} to {}",
         invoice.period_start.format("%Y-%m-%d %H:%M"),
         invoice.period_end.format("%Y-%m-%d %H:%M")
     );

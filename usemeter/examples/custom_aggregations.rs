@@ -2,10 +2,10 @@
 //!
 //! Demonstrates advanced aggregation features.
 
-use usemeter::{Event, Meter, StorageBackend, Aggregation, TimeWindow, AggregationFn};
-use usemeter::storage::SqliteBackend;
-use chrono::{Utc, Duration};
+use chrono::{Duration, Utc};
 use std::collections::HashMap;
+use usemeter::storage::SqliteBackend;
+use usemeter::{Aggregation, AggregationFn, Event, Meter, StorageBackend, TimeWindow};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -37,7 +37,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("📊 Hourly Token Usage:");
     let mut hourly_tokens: HashMap<String, f64> = HashMap::new();
 
-    let events = meter.query()
+    let events = meter
+        .query()
         .user_id("user-123")
         .start_time(now - Duration::hours(24))
         .execute_events()
@@ -45,7 +46,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for event in events {
         let hour_key = event.timestamp.format("%Y-%m-%d %H:00").to_string();
-        *hourly_tokens.entry(hour_key).or_insert(0.0) += event.get_metric("tokens")
+        *hourly_tokens.entry(hour_key).or_insert(0.0) += event
+            .get_metric("tokens")
             .and_then(|v| v.as_f64())
             .unwrap_or(0.0);
     }
