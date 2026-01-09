@@ -47,6 +47,7 @@ The SuperInstance ecosystem consists of modular, reusable tools that work togeth
 | Tool | Description | Use Case | Status |
 |------|-------------|----------|--------|
 | **privox** | Privacy proxy and redaction engine (extracted from synesis-privacy) | Redact sensitive data in any workflow | Ready to Publish |
+| **token-vault** | Secure token storage with AES-256-GCM encryption | Store API keys, secrets, credentials | Published v0.1.0 |
 | **knowledge-vault** | Standalone vector database CLI | Local semantic search | Planned |
 | **tripartite-rs** | Agent consensus library | Build multi-agent systems | Planned |
 
@@ -82,6 +83,7 @@ graph TD
 |------|------------------|-----|
 | **synesis-core** | tokio, serde, async-trait, privox | Async runtime, serialization, privacy |
 | **privox** | regex, rusqlite, uuid | Pattern matching, token vault |
+| **token-vault** | aes-gcm, argon2, blake2, rusqlite | AES-256 encryption, key derivation, storage |
 | **synesis-knowledge** | rusqlite, notify, unicode-segmentation, privox | Database, file watching, privacy |
 | **synesis-cloud** | quinn, rustls, rcgen, privox | QUIC protocol, TLS, privacy |
 | **synesis-models** | sysinfo, dirs | System detection |
