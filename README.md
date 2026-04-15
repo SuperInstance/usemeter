@@ -1,6 +1,12 @@
-# SuperInstance AI
+# SuperInstance AI — usemeter
 
-> **Privacy-first, local-first AI with tripartite consensus**
+> **Privacy-first, local-first AI with tripartite consensus and usage metering**
+
+## Overview
+
+**usemeter** is the usage metering, billing, and cost-tracking engine for the SuperInstance AI ecosystem. It provides high-performance event ingestion (10,000+ events/sec), flexible pricing models, budget alerting, and multi-backend storage. Designed as a standalone crate within the broader SuperInstance workspace, usemeter tracks API calls, token consumption, compute time, and bandwidth—translating raw usage into actionable billing data with millisecond query response times.
+
+The parent workspace also hosts the full tripartite consensus AI system (Pathos, Logos, Ethos), the privox privacy proxy, knowledge-vault RAG engine, and cloud tunnel infrastructure.
 
 [![CI](https://github.com/SuperInstance/Tripartite1/actions/workflows/ci.yml/badge.svg)](https://github.com/SuperInstance/Tripartite1/actions/workflows/ci.yml)
 [![Documentation](https://github.com/SuperInstance/Tripartite1/actions/workflows/documentation.yml/badge.svg)](https://github.com/SuperInstance/Tripartite1/actions/workflows/documentation.yml)
@@ -470,3 +476,109 @@ Built with amazing open-source projects:
 **Version**: 0.2.0 | **Status**: Production-Ready (Phase 1) | **Tests**: 250+ Passing ✅
 
 *Last Updated: 2026-01-07*
+
+## Architecture (Metering Pipeline)
+
+```
+ Application / API Layer
+         │
+         ▼
+ ┌──────────────────┐
+ │   Event Ingestion  │ ← Meter::record(event)
+ │   (async, 10K+/s) │
+ └────────┬─────────┘
+          │
+ ┌────────▼─────────┐
+ │  Aggregation      │ ← hourly / daily / monthly windows
+ │  Engine           │ ← sum, avg, max, min, p99, count
+ └────────┬─────────┘
+          │
+    ┌─────┴──────┐
+    ▼            ▼
+ ┌──────┐   ┌──────────┐
+ │ Query│   │ Billing   │ ← PricingRule, PricingTier
+ │ Layer│   │ Engine    │ ← Invoice generation
+ └──┬───┘   └────┬─────┘
+    │            │
+ ┌──▼────────────▼──┐
+ │  Storage Backends  │
+ │  SQLite │ File     │
+ │  (JSONL)          │
+ └───────────────────┘
+          │
+ ┌────────▼─────────┐
+ │  Reporting &       │
+ │  Alerting          │ ← CSV/JSON reports, budget alerts
+ │  Layer             │
+ └───────────────────┘
+```
+
+### Integration with SuperInstance Ecosystem
+
+```
+┌─────────────┐     ┌───────────────┐     ┌────────────────┐
+│  privox     │────▶│  synesis-core │────▶│   usemeter     │
+│  (redaction)│     │  (tripartite  │     │  (metering &   │
+│             │     │   consensus)  │     │   billing)     │
+└─────────────┘     └───────┬───────┘     └────────┬───────┘
+                            │                      │
+                    ┌───────▼───────┐     ┌───────▼───────┐
+                    │ knowledge-    │     │  synesis-     │
+                    │ vault-rs      │     │  cloud        │
+                    │ (RAG/VSS)     │     │  (QUIC/bill)  │
+                    └───────────────┘     └───────────────┘
+```
+
+## Quick Start (Metering)
+
+```bash
+# Add to Cargo.toml
+[dependencies]
+usemeter = { version = "0.1", features = ["sqlite", "csv-reports"] }
+```
+
+```rust
+use usemeter::{Meter, Event, StorageBackend};
+use usemeter::storage::SqliteBackend;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let storage = SqliteBackend::new_in_memory()?;
+    let meter = Meter::new(storage);
+    meter.initialize().await?;
+
+    let event = Event::builder()
+        .event_type("api_call")
+        .user_id("user-123")
+        .metric("tokens", 1000)
+        .build()?;
+
+    meter.record(event).await?;
+    Ok(())
+}
+```
+
+## Key Features
+
+- **Event Tracking** — High-volume async ingestion with flexible metric schemas
+- **Time Windows** — Hourly, daily, monthly automatic bucketing
+- **Aggregation** — Sum, average, max, min, count, percentile functions
+- **Billing Engine** — Linear and tiered pricing with invoice generation
+- **Storage Backends** — SQLite (embedded), JSONL file, extensible trait
+- **Report Generation** — CSV and JSON export formats
+- **Alerting** — Budget threshold monitoring and anomaly detection
+- **Zero-copy Metrics** — Efficient in-memory aggregation with <10MB footprint
+
+## Integration Points
+
+| Component | Integration Method | Purpose |
+|-----------|-------------------|---------|
+| `privox` | Feature flag `with_privox` | Redact PII before metering |
+| `synesis-core` | Event adapter | Track agent consensus events |
+| `synesis-cloud` | Billing bridge | Cloud escalation cost tracking |
+| `knowledge-vault-rs` | Query audit | RAG query billing |
+| `tripartite-rs` | Consensus callback | Per-agent latency metering |
+
+---
+
+<img src="callsign1.jpg" width="128" alt="callsign">
